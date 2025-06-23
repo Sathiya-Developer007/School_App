@@ -4,7 +4,7 @@ class Todo {
   final String description;
   final String date;
   final bool completed;
-  final String? classId;
+  final int? classId;
   final String? className;
 
   Todo({
@@ -24,15 +24,15 @@ class Todo {
       description: json['description'] ?? '',
       date: json['due_date'] ?? json['date'] ?? '',
       completed: json['completed'] ?? false,
-      classId: _parseClassId(json),
+      classId: json['class_id'],
       className: _parseClassName(json),
     );
   }
 
-  static String? _parseClassId(Map<String, dynamic> json) {
-    if (json['class_id'] != null) return json['class_id'].toString();
-    return null;
-  }
+  // static int? _parseClassId(Map<String, dynamic> json) {
+  //   if (json['class_id'] != null) return json['class_id'].toString();
+  //   return null;
+  // }
 
   static String? _parseClassName(Map<String, dynamic> json) {
     if (json['class_name'] != null) return json['class_name'];
@@ -66,7 +66,7 @@ class Todo {
     String? description,
     String? date,
     bool? completed,
-    String? classId,
+    int? classId,
     String? className,
   }) {
     return Todo(

@@ -5,7 +5,8 @@ import '../models/todo_model.dart';
 
 class TaskProvider with ChangeNotifier {
   List<Todo> _tasks = [];
-  final String _baseUrl = 'http://schoolmanagement.canadacentral.cloudapp.azure.com:5000/api/todos';
+  final String _baseUrl =
+      'http://schoolmanagement.canadacentral.cloudapp.azure.com:5000/api/todos';
   String? _authToken;
 
   final Map<String, String> _classDisplayNames = {
@@ -14,131 +15,136 @@ class TaskProvider with ChangeNotifier {
     // Add other class-to-display-name mappings as needed
   };
 
-
- void setAuthToken(String? token) {
-  _authToken = token;
-  notifyListeners();
-}
+  void setAuthToken(String? token) {
+    _authToken = token;
+    notifyListeners();
+  }
 
   List<Todo> get tasks => _tasks;
 
- Future<void> fetchTodos() async {
-  try {
-    final response = await http.get(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        if (_authToken != null) 'Authorization': 'Bearer $_authToken',
-      },
-    );
+  Future<void> fetchTodos() async {
+    try {
+      final response = await http.get(
+        Uri.parse(_baseUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+        },
+      );
 
-    print('GET /todos → status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+      print('GET /todos → status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      
-      print('\n==== TASK VERIFICATION ====');
-      print('Number of tasks: ${data.length}');
-      
-      _tasks = data.map((item) {
-        final todo = Todo.fromJson(item);
-        print('Task: ${todo.title} | Class ID: ${todo.classId} | Class: ${todo.classId != null ? _classDisplayNames[todo.classId] : "N/A"}');
-        return todo;
-      }).toList();
-      
-      print('==== END TASK VERIFICATION ====\n');
-      notifyListeners();
-    } else {
-      throw Exception('Failed to load todos. Status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+
+        print('\n==== TASK VERIFICATION ====');
+        print('Number of tasks: ${data.length}');
+
+        _tasks = data.map((item) {
+          final todo = Todo.fromJson(item);
+          print(
+            'Task: ${todo.title} | Class ID: ${todo.classId} | Class: ${todo.classId != null ? _classDisplayNames[todo.classId] : "N/A"}',
+          );
+          return todo;
+        }).toList();
+
+        print('==== END TASK VERIFICATION ====\n');
+        notifyListeners();
+      } else {
+        throw Exception('Failed to load todos. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in fetchTodos: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error in fetchTodos: $e');
-    rethrow;
   }
-}
+
   Future<void> addTodo({
-  required String title,
-  required String date,
-  required String description,
-  required int classId,
-}) async {
-  final todoData = {
-    'title': title,
-    'date': date,
-    'description': description,
-    'class_id': classId, // Key must be 'class_id'
-    'completed': false,
-  };
+    required String title,
+    required String date,
+    required String description,
+    required int classId,
+  }) async {
+    final todoData = {
+      'title': title,
+      'date': date,
+      'description': description,
+      'classid': classId, // Key must be 'classid'
+      'completed': false,
+    };
 
-  try {
-    final response = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        if (_authToken != null) 'Authorization': 'Bearer $_authToken',
-      },
-      body: json.encode(todoData),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+        },
+        body: json.encode(todoData),
+      );
 
-    print('POST /todos → status: ${response.statusCode}');
-    print('Request body: ${json.encode(todoData)}'); // Log request payload
-    print('Response body: ${response.body}');
+      print('POST /todos → status: ${response.statusCode}');
+      print('Request body: ${json.encode(todoData)}'); // Log request payload
+      print('Response body: ${response.body}');
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
-      await fetchTodos();
-    } else {
-      throw Exception('Failed to add todo. Status: ${response.statusCode}');
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        await fetchTodos();
+      } else {
+        throw Exception('Failed to add todo. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in addTodo: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error in addTodo: $e');
-    rethrow;
   }
-}
-  
-Future<void> updateTodo({
-  required String id,
-  required String title,
-  required String date,
-  required String description,
-  required bool completed,
-  required int classId,
-}) async {
-  final url = '$_baseUrl/$id';
 
-  final updatedData = {
-    'title': title,
-    'date': date,
-    'description': description,
-    'class_id': classId, // Key must be 'class_id'
-    'completed': completed,
-  };
+  Future<void> updateTodo({
+    required String id,
+    required String title,
+    required String date,
+    required String description,
+    required bool completed,
+    required int classId,
+  }) async {
+    final url = '$_baseUrl/$id';
 
-  try {
-    final response = await http.put(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        if (_authToken != null) 'Authorization': 'Bearer $_authToken',
-      },
-      body: json.encode(updatedData),
-    );
+    final updatedData = {
+      'title': title,
+      'date': date,
+      'description': description,
+      'classid': classId, // Key must be 'classid'
+      'completed': completed,
+    };
 
-    print('PUT /todos/$id → status: ${response.statusCode}');
-    print('Request body: ${json.encode(updatedData)}'); // Log request payload
-    print('Response body: ${response.body}');
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+        },
+        body: json.encode(updatedData),
+      );
 
-    if (response.statusCode == 200) {
-      await fetchTodos();
-    } else {
-      throw Exception('Failed to update todo. Status: ${response.statusCode}');
+      print('PUT /todos/$id → status: ${response.statusCode}');
+      print('Request body: ${json.encode(updatedData)}'); // Log request payload
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        await fetchTodos();
+      } else {
+        throw Exception(
+          'Failed to update todo. Status: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('Error in updateTodo: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error in updateTodo: $e');
-    rethrow;
   }
-}
-  Future<void> deleteTodo(String id) async {
+
+  Future<void> deleteTodo({required String id}) async {
     final url = '$_baseUrl/$id';
 
     try {
@@ -148,13 +154,15 @@ Future<void> updateTodo({
       );
 
       _logRequest('DELETE', url, response);
-      
+
       if (response.statusCode == 204 || response.statusCode == 200) {
         _tasks.removeWhere((task) => task.id == id);
         notifyListeners();
         await fetchTodos();
       } else {
-        throw Exception('Failed to delete todo. Status: ${response.statusCode}');
+        throw Exception(
+          'Failed to delete todo. Status: ${response.statusCode}',
+        );
       }
     } catch (e) {
       print('Error in deleteTodo: $e');
